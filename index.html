@@ -45,3 +45,44 @@
       <!-- Puzzle 2: Caesar Cipher -->
       <div id="p2" class="card puzzle locked">
         <h3>Puzzle 2 — Scrambled Letter</h3>
+        <p>A diary page has a hidden note. Decrypt the message (Caesar shift).</p>
+        <pre id="cipherText" class="cipher">QEB NRFZH YOLTK CLU GRJMP LSBO QEB IXWV ALD</pre>
+        <div class="lock">
+          <input id="p2-input" placeholder="decrypted phrase" />
+          <button id="p2-submit" class="btn">Submit</button>
+        </div>
+        <div class="feedback" id="p2-feedback"></div>
+      </div>
+
+      <!-- Puzzle 3: Word Wheel -->
+      <div id="p3" class="card puzzle locked">
+        <h3>Puzzle 3 — Heart of the House</h3>
+        <p>Rearrange the letters to form a single word that unlocks the door.</p>
+        <div class="wheel" id="wheel">
+          <div class="center">_</div>
+          <div class="letters">
+            <button class="letter">G</button>
+            <button class="letter">L</button>
+            <button class="letter">A</button>
+            <button class="letter">S</button>
+            <button class="letter">S</button>
+          </div>
+        </div>
+        <div class="lock">
+          <input id="p3-input" placeholder="type the word" />
+          <button id="p3-submit" class="btn">Unlock Door</button>
+        </div>
+        <div class="feedback" id="p3-feedback"></div>
+      </div>
+    </section>
+
+    <section id="success" class="card hidden">
+      <h2>Freedom</h2>
+      <p>Congratulations — you revealed the truth and escaped the memory. 👏</p>
+      <button id="restartBtn" class="btn">Play again</button>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
