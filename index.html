@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Glass Castle — Digital Escape Room</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Glass Castle — Escape Room</h1>
+    <div class="meta">
+      <div id="timer">Time: 10:00</div>
+      <button id="hintBtn" class="btn">Hint (<span id="hintsLeft">3</span>)</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="intro" class="card">
+      <h2>Welcome</h2>
+      <p>You're inside a memory — each puzzle reveals a truth. Solve all three puzzles to escape. Click <strong>Start</strong> to begin the 10-minute timer.</p>
+      <button id="startBtn" class="btn primary">Start</button>
+    </section>
+
+    <section id="room" class="hidden">
+      <div class="progress">
+        <div class="step done" data-step="1">1</div>
+        <div class="line"></div>
+        <div class="step" data-step="2">2</div>
+        <div class="line"></div>
+        <div class="step" data-step="3">3</div>
+      </div>
+
+      <!-- Puzzle 1: Numeric Lock -->
+      <div id="p1" class="card puzzle">
+        <h3>Puzzle 1 — The Promised Plan</h3>
+        <p>A worn blueprint is taped to the table. A four-digit lock waits for the right year.</p>
+        <div class="lock">
+          <input id="p1-input" maxlength="4" placeholder="____" />
+          <button id="p1-submit" class="btn">Unlock</button>
+        </div>
+        <div class="feedback" id="p1-feedback"></div>
+      </div>
+
+      <!-- Puzzle 2: Caesar Cipher -->
+      <div id="p2" class="card puzzle locked">
+        <h3>Puzzle 2 — Scrambled Letter</h3>
