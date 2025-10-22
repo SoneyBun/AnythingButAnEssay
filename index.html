@@ -1,87 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Glass Castle — Digital Escape Room</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deception Investigation Board</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <h1>Glass Castle — Escape Room</h1>
-    <div class="meta">
-      <div id="timer">Time: 10:00</div>
-      <button id="hintBtn" class="btn">Hint (<span id="hintsLeft">3</span>)</button>
-    </div>
+  <header>
+    <h1>Deception Investigation Board</h1>
+    <p>Investigate deception in Jeannette Walls's <em>The Glass Castle</em>. Solve each case to unlock the next folder and reveal the final Case Report.</p>
   </header>
 
-  <main class="container">
-    <section id="intro" class="card">
-      <h2>Welcome</h2>
-      <p>You're inside a memory — each puzzle reveals a truth. Solve all three puzzles to escape. Click <strong>Start</strong> to begin the 10-minute timer.</p>
-      <button id="startBtn" class="btn primary">Start</button>
-    </section>
+  <main id="corkboard">
+    <div id="folders">
+      <div class="folder" id="folder1" data-case="1">Case 1 — Sobriety</div>
+      <div class="folder locked" id="folder2" data-case="2">Case 2 — Trash Pit</div>
+      <div class="folder locked" id="folder3" data-case="3">Case 3 — Absence</div>
+      <div class="folder locked" id="folder4" data-case="4">Case 4 — Spending</div>
+    </div>
 
-    <section id="room" class="hidden">
-      <div class="progress">
-        <div class="step done" data-step="1">1</div>
-        <div class="line"></div>
-        <div class="step" data-step="2">2</div>
-        <div class="line"></div>
-        <div class="step" data-step="3">3</div>
-      </div>
-
-      <!-- Puzzle 1: Numeric Lock -->
-      <div id="p1" class="card puzzle">
-        <h3>Puzzle 1 — The Promised Plan</h3>
-        <p>A worn blueprint is taped to the table. A four-digit lock waits for the right year.</p>
-        <div class="lock">
-          <input id="p1-input" maxlength="4" placeholder="____" />
-          <button id="p1-submit" class="btn">Unlock</button>
-        </div>
-        <div class="feedback" id="p1-feedback"></div>
-      </div>
-
-      <!-- Puzzle 2: Caesar Cipher -->
-      <div id="p2" class="card puzzle locked">
-        <h3>Puzzle 2 — Scrambled Letter</h3>
-        <p>A diary page has a hidden note. Decrypt the message (Caesar shift).</p>
-        <pre id="cipherText" class="cipher">QEB NRFZH YOLTK CLU GRJMP LSBO QEB IXWV ALD</pre>
-        <div class="lock">
-          <input id="p2-input" placeholder="decrypted phrase" />
-          <button id="p2-submit" class="btn">Submit</button>
-        </div>
-        <div class="feedback" id="p2-feedback"></div>
-      </div>
-
-      <!-- Puzzle 3: Word Wheel -->
-      <div id="p3" class="card puzzle locked">
-        <h3>Puzzle 3 — Heart of the House</h3>
-        <p>Rearrange the letters to form a single word that unlocks the door.</p>
-        <div class="wheel" id="wheel">
-          <div class="center">_</div>
-          <div class="letters">
-            <button class="letter">G</button>
-            <button class="letter">L</button>
-            <button class="letter">A</button>
-            <button class="letter">S</button>
-            <button class="letter">S</button>
-          </div>
-        </div>
-        <div class="lock">
-          <input id="p3-input" placeholder="type the word" />
-          <button id="p3-submit" class="btn">Unlock Door</button>
-        </div>
-        <div class="feedback" id="p3-feedback"></div>
-      </div>
-    </section>
-
-    <section id="success" class="card hidden">
-      <h2>Freedom</h2>
-      <p>Congratulations — you revealed the truth and escaped the memory. 👏</p>
-      <button id="restartBtn" class="btn">Play again</button>
-    </section>
+    <aside id="sidebar">
+      <h2>Clues Collected</h2>
+      <ul id="inventory"></ul>
+      <label>Progress</label>
+      <progress id="progress" max="4" value="0"></progress>
+      <button id="openReport" disabled>Open Case Report</button>
+    </aside>
   </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-inner">
+      <button id="closeModal" class="close">✕</button>
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <div id="modalControls"></div>
+      <div id="modalFeedback" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <footer>
+    <small>Take the quiz here: https://docs.google.com/forms/d/e/1FAIpQLSfi-B6GCh7F0TOAbU_tYlxd13z2I2ioGXdqGWgXSXOGYnlwMA/viewform?usp=sharing&ouid=110425452833317141331</small>
+  </footer>
 
   <script src="script.js"></script>
 </body>
