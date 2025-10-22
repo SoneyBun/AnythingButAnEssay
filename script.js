@@ -1,158 +1,157 @@
-/* --- simple digital escape room logic --- */
+document.addEventListener('DOMContentLoaded', () => {
+  const folders = document.querySelectorAll('.folder');
+  const inventory = document.getElementById('inventory');
+  const progress = document.getElementById('progress');
+  const openReport = document.getElementById('openReport');
 
-const startBtn = document.getElementById('startBtn');
-const room = document.getElementById('room');
-const intro = document.getElementById('intro');
-const success = document.getElementById('success');
-const timerEl = document.getElementById('timer');
-const hintBtn = document.getElementById('hintBtn');
-const hintsLeftEl = document.getElementById('hintsLeft');
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalControls = document.getElementById('modalControls');
+  const modalFeedback = document.getElementById('modalFeedback');
+  const closeModalBtn = document.getElementById('closeModal');
 
-let timeLeft = 10 * 60; // seconds (10:00)
-let timerInterval = null;
-let hintsLeft = 3;
-let solved = {1:false,2:false,3:false};
+  let unlocked = new Set();
 
-function formatTime(s){
-  const m = Math.floor(s/60).toString().padStart(2,'0');
-  const sec = (s%60).toString().padStart(2,'0');
-  return `${m}:${sec}`;
-}
-
-function startTimer(){
-  timerEl.textContent = 'Time: ' + formatTime(timeLeft);
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    timerEl.textContent = 'Time: ' + formatTime(timeLeft);
-    if(timeLeft<=0){
-      clearInterval(timerInterval);
-      failAll();
-    }
-  },1000);
-}
-
-function failAll(){
-  alert("Time's up! The memory fades. Refresh or press 'Play again' to try again.");
-  // lock everything
-  document.querySelectorAll('.btn').forEach(b=>b.disabled=true);
-}
-
-startBtn.addEventListener('click', ()=>{
-  intro.classList.add('hidden');
-  room.classList.remove('hidden');
-  startTimer();
-});
-
-/* ---------- HINT SYSTEM ---------- */
-hintBtn.addEventListener('click', ()=>{
-  if(hintsLeft<=0) return alert("No hints left.");
-  if(timeLeft <= 30) return alert("Too little time to use a hint.");
-  hintsLeft--;
-  hintsLeftEl.textContent = hintsLeft;
-  timeLeft -= 30; // hint costs 30 seconds
-  if(!solved[1]){
-    alert("Hint 1: Think of a year connected to their 'big promise' — it's older than 1970.");
-  } else if(!solved[2]){
-    alert("Hint 2: Caesar shift by 23 (or shift left by 3).");
-  } else if(!solved[3]){
-    alert("Hint 3: Rearrange the letters to spell a common word tied to the house.");
-  } else {
-    alert("You're almost done — try the door.");
+  function openModal(title, bodyHtml, controlsBuilder) {
+    modalTitle.textContent = title;
+    if (typeof bodyHtml === 'string') modalBody.innerHTML = bodyHtml;
+    else modalBody.innerHTML = ''; modalBody.appendChild(bodyHtml);
+    modalControls.innerHTML = '';
+    if (controlsBuilder) controlsBuilder(modalControls);
+    modalFeedback.textContent = '';
+    modal.classList.remove('hidden');
   }
-});
 
-/* ---------- PUZZLE 1: Numeric Lock ---------- */
-/* We'll use code 1956 (example). You can change it to match your thematic choices. */
-const p1Input = document.getElementById('p1-input');
-const p1Submit = document.getElementById('p1-submit');
-const p1Feedback = document.getElementById('p1-feedback');
+  function closeModalFunc() { modal.classList.add('hidden'); }
+  closeModalBtn.addEventListener('click', closeModalFunc);
 
-p1Submit.addEventListener('click', ()=>{
-  const val = p1Input.value.trim();
-  if(val === '1956'){
-    p1Feedback.textContent = 'The lock clicks — a secret compartment opens.';
-    markSolved(1);
-  } else {
-    p1Feedback.textContent = 'That year is not right. Try again.';
+  function markUnlocked(caseNum, title, clue) {
+    if (unlocked.has(caseNum)) return;
+    unlocked.add(caseNum);
+    const li = document.createElement('li');
+    li.textContent = `${title}: ${clue}`;
+    inventory.appendChild(li);
+    progress.value = unlocked.size;
+    const folder = document.getElementById('folder'+(caseNum+1));
+    if(folder) folder.classList.remove('locked');
+    if(unlocked.size===4) openReport.disabled=false;
   }
-});
 
-/* ---------- PUZZLE 2: Caesar Cipher ---------- */
-/* Cipher text is: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG" shifted by +3 => QEB ... (that's a demo)
-   We'll accept the decrypted phrase in lowercase without punctuation.
-*/
-const p2Input = document.getElementById('p2-input');
-const p2Submit = document.getElementById('p2-submit');
-const p2Feedback = document.getElementById('p2-feedback');
+  // Case 1: Fill-in-the-blank
+  document.getElementById('folder1').addEventListener('click', () => {
+    const body = document.createElement('div');
+    body.innerHTML = `<div class="excerpt">"Do you think you could maybe <strong>_____</strong> drinking?" (Walls 116)</div>
+    <p>Complete the missing word (one word):</p>`;
+    const input = document.createElement('input');
+    input.type='text';
+    input.placeholder='one-word answer';
+    body.appendChild(input);
 
-p2Submit.addEventListener('click', ()=>{
-  const guess = p2Input.value.trim().toLowerCase().replace(/[^a-z ]/g,'');
-  const correct = 'the quick brown fox jumps over the lazy dog';
-  if(guess === correct){
-    p2Feedback.textContent = 'Nice work — the message resolves into something familiar.';
-    markSolved(2);
-  } else {
-    p2Feedback.textContent = "That doesn't match the decrypted sentence. Try shifting letters left by 3.";
-  }
-});
-
-/* ---------- PUZZLE 3: Word Wheel ---------- */
-/* Letters: G L A S S -> solution: glass */
-const p3Input = document.getElementById('p3-input');
-const p3Submit = document.getElementById('p3-submit');
-const p3Feedback = document.getElementById('p3-feedback');
-
-p3Submit.addEventListener('click', ()=>{
-  const guess = p3Input.value.trim().toLowerCase();
-  if(guess === 'glass'){
-    p3Feedback.textContent = 'The final bolt releases. You push the door open.';
-    markSolved(3);
-    finishEscape();
-  } else {
-    p3Feedback.textContent = 'Not quite. Try another arrangement of the letters.';
-  }
-});
-
-/* letter buttons fill the input for fun */
-document.querySelectorAll('.letter').forEach(btn=>{
-  btn.addEventListener('click', ()=> {
-    p3Input.value += btn.textContent;
+    openModal('Case 1 — Sobriety', body, controls=>{
+      const btn=document.createElement('button'); btn.textContent='Submit';
+      btn.addEventListener('click', ()=>{
+        const val=(input.value||'').trim().toLowerCase();
+        if(val==='stop'||val==='quit'){
+          modalFeedback.style.color='green';
+          modalFeedback.textContent='Correct!';
+          markUnlocked(1,'Sobriety','Answer: '+val);
+          setTimeout(closeModalFunc,800);
+        } else {
+          modalFeedback.style.color='#b83b3b';
+          modalFeedback.textContent='Try again.';
+        }
+      });
+      controls.appendChild(btn);
+    });
   });
-});
 
-/* ---------- Utility: mark step solved & unlock next ---------- */
-function markSolved(n){
-  solved[n] = true;
-  // mark progress UI
-  const stepEl = document.querySelector(`.step[data-step="${n}"]`);
-  if(stepEl) stepEl.classList.add('done');
+  // Case 2: Click-for-letters
+  document.getElementById('folder2').addEventListener('click', ()=>{
+    const body=document.createElement('div');
+    body.innerHTML=`<div class="excerpt">"He was going to hire a <span class="clue-word" data-letter="D">truck</span> to <span class="clue-word" data-letter="U">cart</span> the <span class="clue-word" data-letter="M">garbage</span> to the <span class="clue-word" data-letter="P">dump</span> all at once." (Walls 155)</div>
+    <div>Collected letters: <span id="collected2"></span></div>`;
+    openModal('Case 2 — Trash Pit', body, controls=>{
+      const submit=document.createElement('button'); submit.textContent='Submit Code';
+      submit.addEventListener('click', ()=>{
+        const code=(document.getElementById('collected2').textContent||'').toUpperCase();
+        if(code==='DUMP'){ modalFeedback.style.color='green'; modalFeedback.textContent='Correct!'; markUnlocked(2,'Trash Pit','Code: DUMP'); setTimeout(closeModalFunc,800);}
+        else {modalFeedback.style.color='#b83b3b'; modalFeedback.textContent='Incorrect.';}
+      });
+      controls.appendChild(submit);
+      Array.from(document.querySelectorAll('.clue-word')).forEach(span=>{
+        span.addEventListener('click', ()=>{
+          if(!span.classList.contains('revealed')){
+            span.classList.add('revealed');
+            const collected=document.getElementById('collected2');
+            collected.textContent=(collected.textContent||'')+span.dataset.letter;
+          }
+        });
+      });
+    });
+  });
 
-  // unlock next puzzle
-  if(n === 1){
-    document.getElementById('p2').classList.remove('locked');
-    document.getElementById('p2-feedback').textContent = 'You found a clue: rotate letters left by 3.';
-  }
-  if(n === 2){
-    document.getElementById('p3').classList.remove('locked');
-  }
-}
+  // Case 3: Drag-and-drop simplified to reorder buttons
+  document.getElementById('folder3').addEventListener('click', ()=>{
+    const pieces=['When I left the house the next morning,','Dad was still asleep.','When I came home in the evening,','he was gone'];
+    const shuffled=[...pieces].sort(()=>Math.random()-0.5);
+    const body=document.createElement('div');
+    body.innerHTML='<p>Click in chronological order:</p>';
+    const container=document.createElement('div'); container.style.display='flex'; container.style.flexDirection='column'; container.style.gap='6px';
+    shuffled.forEach(text=>{
+      const btn=document.createElement('button'); btn.textContent=text;
+      btn.addEventListener('click',()=>{
+        const selected=document.createElement('div'); selected.textContent=text; selected.style.padding='4px'; container.appendChild(selected);
+        btn.disabled=true;
+      });
+      container.appendChild(btn);
+    });
+    body.appendChild(container);
+    openModal('Case 3 — Absence', body, controls=>{
+      const check=document.createElement('button'); check.textContent='Check Order';
+      check.addEventListener('click', ()=>{
+        const selected=Array.from(container.children).map(n=>n.textContent);
+        const correct=pieces.every((v,i)=>v===selected[i]);
+        if(correct){ modalFeedback.style.color='green'; modalFeedback.textContent='Correct order!'; markUnlocked(3,'Absence','Key: GONE'); setTimeout(closeModalFunc,800);}
+        else{modalFeedback.style.color='#b83b3b'; modalFeedback.textContent='Order incorrect.';}
+      });
+      controls.appendChild(check);
+    });
+  });
 
-/* ---------- Finish ---------- */
-function finishEscape(){
-  clearInterval(timerInterval);
-  room.classList.add('hidden');
-  success.classList.remove('hidden');
-}
+  // Case 4: MCQ
+  document.getElementById('folder4').addEventListener('click', ()=>{
+    const body=document.createElement('div');
+    body.innerHTML=`<div class="excerpt">"'Gone, gone gone!' she said. 'It's all gone.'" (Walls 197)</div>
+    <p>Interpretation of deception:</p>`;
+    const ul=document.createElement('ul'); ul.className='mcq-options';
+    const options=[
+      {text:'Rose Mary hides money.',correct:false},
+      {text:'Her priorities create a false scarcity.',correct:true},
+      {text:'Neighbors stole the money.',correct:false},
+      {text:'Children spent it secretly.',correct:false}
+    ];
+    options.forEach(opt=>{
+      const li=document.createElement('li'); const btn=document.createElement('button'); btn.textContent=opt.text;
+      btn.addEventListener('click', ()=>{
+        if(opt.correct){ modalFeedback.style.color='green'; modalFeedback.textContent='Correct!'; markUnlocked(4,'Spending','Correct interpretation'); setTimeout(closeModalFunc,800);}
+        else{modalFeedback.style.color='#b83b3b'; modalFeedback.textContent='Incorrect.';}
+      });
+      li.appendChild(btn); ul.appendChild(li);
+    });
+    body.appendChild(ul);
+    openModal('Case 4 — Spending', body,null);
+  });
 
-/* ---------- Restart ---------- */
-const restartBtn = document.getElementById('restartBtn');
-restartBtn.addEventListener('click', ()=>{
-  location.reload();
-});
+  openReport.addEventListener('click', ()=>{
+    const reportText=`Rationale — Deception as a Mechanism
 
-/* optional: keyboard shortcuts for testing */
-document.addEventListener('keydown', (e)=>{
-  if(e.key === '1') { p1Input.value='1956'; p1Submit.click(); }
-  if(e.key === '2') { p2Input.value='the quick brown fox jumps over the lazy dog'; p2Submit.click(); }
-  if(e.key === '3') { p3Input.value='glass'; p3Submit.click(); }
+Case 1: "Do you think you could maybe stop drinking?" (Walls 116)
+Case 2: "He was going to hire a truck to cart the garbage to the dump all at once." (Walls 155)
+Case 3: "When I left the house the next morning, Dad was still asleep. When I came home in the evening, he was gone." (Walls 170)
+Case 4: "'Gone, gone gone!' she said. 'It's all gone.'" (Walls 197)
+
+Deception is shown through broken promises, misleading explanations, absences, and misaligned priorities. Completing each puzzle encourages analytical reading of how deception shapes family life in The Glass Castle.`;
+    openModal('Case Report — Deception', `<pre style="white-space:pre-wrap;">${reportText}</pre>`);
+  });
 });
